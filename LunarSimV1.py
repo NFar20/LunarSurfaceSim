@@ -453,6 +453,7 @@ def simulate_object_temperature(
     lon_deg,
     start_time,
     T0,
+    power_gen,
     duration_days=30,
     dt_minutes=10,
     L_cube=1.00,
@@ -569,11 +570,13 @@ def simulate_object_temperature(
         T_safe = max(float(T_cube), 1.0)
 
         Q_emit = epsilon_IR * SIGMA * A_total * T_safe**4
+        
+        Q_gen = power_gen
 
         # 5. Contact conduction with lunar surface
         Q_contact = h_contact * A_contact * (T_surface - T_safe)
 
-        Q_net = Q_solar + Q_albedo + Q_lunar_IR + Q_contact - Q_emit
+        Q_net = Q_solar + Q_albedo + Q_lunar_IR + Q_contact - Q_emit + Q_gen
 
         return {
             "Q_solar_W": Q_solar,
@@ -581,6 +584,7 @@ def simulate_object_temperature(
             "Q_lunar_IR_W": Q_lunar_IR,
             "Q_contact_W": Q_contact,
             "Q_emit_W": Q_emit,
+            "Q_gen_W": Q_gen,
             "Q_net_W": Q_net,
             **env
         }
@@ -645,6 +649,7 @@ def simulate_object_temperature(
             "Q_lunar_IR_W": terms["Q_lunar_IR_W"],
             "Q_contact_W": terms["Q_contact_W"],
             "Q_emit_W": terms["Q_emit_W"],
+            "Q_gen_W": terms["Q_gen_W"],
             "Q_net_W": terms["Q_net_W"],
 
             "mass_kg": mass,
@@ -719,6 +724,7 @@ def main():
     # area_solar = get_float("Enter sun-facing area in m^2: ")
     # area_radiating = get_float("Enter radiating surface area in m^2: ")
     initial_temp_K = get_float("Enter initial object temperature in K: ")
+    power_gen = get_float("Enter internal power generation in W (if any): ", default=0.0)
 
     print("\nRunning simulation...\n")
 
@@ -731,6 +737,7 @@ def main():
         dt_minutes=dt_minutes,
         L_cube=L_cube,
         T0=initial_temp_K,
+        power_gen=power_gen,
         alpha_solar=absorptivity,
         epsilon_IR=emissivity,
         rho=density_kg_m3,
